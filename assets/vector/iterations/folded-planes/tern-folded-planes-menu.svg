@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="22" height="18" viewBox="0 0 22 18" fill="currentColor" role="img" aria-labelledby="title">
+  <title id="title">Tern folded-planes menu-bar symbol</title>
+  <g transform="translate(11 9) scale(.0282) translate(-310 -314)">
+    <path d="M64 350L278 270L278 300C253 313 246 327 246 352V476C246 485 239 489 230 485L103 438C76 428 64 413 64 384Z" />
+    <path d="M445 207L524 258C545 267 556 285 556 312V340L412 365C438 338 445 317 445 286Z" />
+    <path d="M104 181L410 51C430 42 445 52 445 75V202C445 221 437 234 419 242L104 376C82 386 69 400 76 418C67 409 64 396 64 380V242C64 213 78 192 104 181Z" />
+    <path d="M275 383L523 278C543 270 556 284 556 310V413C556 440 542 459 518 470L274 577C257 584 245 576 245 556V422C245 404 255 392 275 383Z" />
+  </g>
+</svg>

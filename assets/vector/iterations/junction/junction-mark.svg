@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" role="img" aria-labelledby="title"><title id="title">Tern junction mark</title><defs>
+  
+  <g id="junction-ribbon" fill="none" stroke-width="28" stroke-linejoin="miter" stroke-linecap="butt">
+    <path d="M512 242L746 377.10V493.10L612 415.74V570.47L512 512.73Z" stroke="currentColor"/>
+    
+  </g>
+</defs><g id="junction-mark" transform="translate(51.2 51.2) scale(.9)">
+<use href="#junction-ribbon" transform="translate(0 -50)"/>
+<use href="#junction-ribbon" transform="rotate(120 512 512) translate(0 -50)"/>
+<use href="#junction-ribbon" transform="rotate(240 512 512) translate(0 -50)"/>
+</g></svg>

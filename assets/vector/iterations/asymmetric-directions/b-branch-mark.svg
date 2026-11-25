@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" role="img" aria-labelledby="title">
+  <title id="title">Tern — Branch</title>
+  <g id="brand-mark" fill="none" stroke-width="25" stroke-linejoin="round" stroke-linecap="butt" transform="translate(512 512) scale(1.176470588) translate(-526.0000 -538.0000)">
+    <path id="silhouette" d="M300.000 752.000L300.000 544.000L548.000 296.000L752.000 296.000L752.000 400.000L592.000 400.000L454.000 538.000L584.000 538.000L752.000 706.000L678.000 780.000L540.000 642.000L404.000 642.000L404.000 752.000Z" stroke="currentColor" />
+    <path id="inner-0" d="M352 704V566L568 348H708" stroke="currentColor" />
+    <path id="inner-1" d="M432 590H562L692 720" stroke="currentColor" />
+  </g>
+</svg>

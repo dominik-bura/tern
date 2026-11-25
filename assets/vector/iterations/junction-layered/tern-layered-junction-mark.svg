@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" role="img" aria-labelledby="title"><title id="title">Tern layered junction mark</title>
+
+  <defs>
+    <!-- Smooth falloff only on the inner traces; the outer silhouette stays crisp. -->
+
+    <g id="layered-ribbon" fill="none" stroke-width="24" stroke-linejoin="miter" stroke-linecap="butt" stroke-miterlimit="3">
+      <path id="ribbon-outline" d="M512.0000 242.0000L752.0000 380.5641L752.0000 491.4153L608.0000 408.2769L608.0000 574.5538L512.0000 519.1281Z" stroke="currentColor"/>
+      <path id="inner-traces" d="M560.0000 325.1384L704.0000 408.2769M560.0000 408.2769L560.0000 491.4153" stroke="currentColor"/>
+    </g>
+  </defs>
+  <!-- Three identical ribbons, with equal center clearance and exact 120° repetition. -->
+  <g id="layered-junction" transform="translate(51.2 51.2) scale(.9)">
+    <use href="#layered-ribbon" transform="translate(0 -42)"/>
+    <use href="#layered-ribbon" transform="rotate(120 512 512) translate(0 -42)"/>
+    <use href="#layered-ribbon" transform="rotate(240 512 512) translate(0 -42)"/>
+  </g>
+</svg>

@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" role="img" aria-labelledby="title">
+  <title id="title">Tern — Fold</title>
+  <g id="brand-mark" fill="none" stroke-width="25" stroke-linejoin="round" stroke-linecap="butt" transform="translate(512 512) scale(1.052631579) translate(-520.0000 -546.0000)">
+    <path id="silhouette" d="M248 292H792L692 392H570V742L470 800V392H348Z" stroke="currentColor" />
+    <path id="inner-0" d="M342 340H676L626 390H520V704" stroke="currentColor" />
+  </g>
+</svg>

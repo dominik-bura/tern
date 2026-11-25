@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" role="img" aria-labelledby="title">
+  <title id="title">Tern — Channel</title>
+  <g id="brand-mark" fill="none" stroke-width="25" stroke-linejoin="round" stroke-linecap="butt" transform="translate(512 512) scale(1.214574899) translate(-512.0000 -526.0000)">
+    <path id="silhouette" d="M320 292H728V536L504 760H296V648H456L616 488V404H432V550H320Z" stroke="currentColor" />
+    <path id="inner-0" d="M376 504V348H672V512L480 704H344" stroke="currentColor" />
+  </g>
+</svg>

@@ -1,0 +1,16 @@
+Use case: logo-brand.
+Create one exceptionally well-designed logo exploration sheet for TERN, a refined native macOS utility that routes links to the right browser or browser profile. This is a NEW concept study, not a tracing of an existing logo.
+
+Composition: landscape contact sheet with four equal concepts in a clean 2×2 grid. Each cell contains a large dark graphite macOS rounded-square app tile, a crisp white original logo centered on it, and one small unboxed monochrome version beside it showing the silhouette. Label the cells only A, B, C, D in a modest clean sans-serif. Background neutral charcoal, generous whitespace, carefully equal optical scale. No heading, no other text.
+
+Art direction: senior identity designer craftsmanship, memorable compact proprietary-looking shapes, beautifully integrated negative space, consistent optical spacing, subtly softened angular corners. White and soft silver on dark gray. The tile may have extremely restrained soft lighting and grain, but the SYMBOLS must look flat and vector-friendly, without bevels, extrusions or metallic rendering. A very subtle fade on one secondary inset detail is welcome. Favor substantial white ribbons with one or two inset cuts over thin wireframe mazes. Each mark must have a strong silhouette at 24px.
+
+FOUR GENUINELY DIFFERENT IDEAS:
+A: two offset folded planes that share a single negative-space passage; a cohesive sculptural abstract emblem, compact and asymmetric.
+B: a clever continuous band that changes direction once and separates into two integrated layers; a distinctive original brand symbol suggesting a chosen path, not a literal arrow icon.
+C: a very abstract tern in flight, using a single folded wing and a subtle forked-tail cut; express the bird through elegant negative space, avoid a drawn or illustrative bird.
+D: a bold compact abstract ribbon ligature, balanced solid and cutout areas, suggesting entry and exit through a doorway or portal. No forced letter, no circular striped disc.
+
+Be inventive. These should feel as considered and recognizable as strong software identities, but must not reproduce Warp, Linear, Claude or any existing brand logo. Do not produce four similar variations of one glyph.
+
+Absolutely avoid rotating arms, pinwheels, radial arrangements, hooked crosses, swastika-like shapes, X marks, starbursts, generic swap arrows, generic git branch symbols, forced T/F/K/R letters, numbers, decorative circuit-board labyrinths, paper airplanes, recycled symbols, shields, stock logo appearance. No colored accents. No watermark. Render with sharp clean edges and truly deliberate geometry.

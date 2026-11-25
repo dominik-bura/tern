@@ -1,0 +1,116 @@
+import AppKit
+import SwiftUI
+import Combine
+
+@MainActor final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
+    private var dashboard: NSWindow?
+    private var mainController: MainWindowController?
+    private var picker: NSWindow?
+    private var receivedURL = false
+    private var pickerObservation: AnyCancellable?
+    private var clickMonitor: Any?
+    private let model = AppModel.shared
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        NSApplication.shared.applicationIconImage = TernAssets.applicationIcon
+        NSApplication.shared.setActivationPolicy(.accessory)
+        clickMonitor = NSEvent.addLocalMonitorForEvents(matching: .leftMouseDown) { event in
+            Self.endEditingIfClickedOutside(event)
+            return event
+        }
+        model.showDashboard = { [weak self] in self?.showDashboard() }
+        model.router.onNeedsAttention = { [weak self] in self?.showPicker() }
+        pickerObservation = model.router.$current.sink { [weak self] pending in
+            guard pending == nil else { return }
+            DispatchQueue.main.async {
+                guard self?.model.router.current == nil else { return }
+                self?.picker?.orderOut(nil)
+            }
+        }
+        if model.router.current != nil { showPicker() }
+        if !receivedURL { showDashboard() }
+        if model.needsOnboarding {
+            showDashboard()
+            model.showsOnboarding = true
+        }
+    }
+    /// Like clicking empty space in System Settings: a click outside the focused text field ends editing.
+    private static func endEditingIfClickedOutside(_ event: NSEvent) {
+        guard let window = event.window, let editor = window.firstResponder as? NSText,
+              let field = editor.delegate as? NSView,
+              let contentView = window.contentView else { return }
+        let hit = contentView.hitTest(contentView.convert(event.locationInWindow, from: nil))
+        if let hit, hit === field || hit.isDescendant(of: field) || hit === editor || hit is NSTextField { return }
+        window.makeFirstResponder(nil)
+    }
+
+    func application(_ application: NSApplication, open urls: [URL]) {
+        receivedURL = true
+        model.receive(urls, sourceApp: Self.sendingApp())
+    }
+    /// The app the link came from: the sender of the "open URL" Apple event, or else the frontmost app.
+    private static func sendingApp() -> String? {
+        let own = Bundle.main.bundleIdentifier
+        if let event = NSAppleEventManager.shared().currentAppleEvent,
+           let pid = event.attributeDescriptor(forKeyword: keySenderPIDAttr)?.int32Value, pid > 0,
+           let id = NSRunningApplication(processIdentifier: pid)?.bundleIdentifier,
+           id != own, !Self.isSystemRelay(id) {
+            return id
+        }
+        let front = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
+        return front == own ? nil : front
+    }
+    /// Services that forward links on behalf of the app the person actually used.
+    private static func isSystemRelay(_ id: String) -> Bool {
+        ["com.apple.launchservicesd", "com.apple.coreservices.uiagent", "com.apple.CoreServicesUIAgent"].contains(id)
+    }
+    func applicationDidBecomeActive(_ notification: Notification) {
+        // Picks up profile changes and newly granted Full Disk Access.
+        model.loadBrowserProfiles()
+    }
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        showDashboard(); return true
+    }
+    func showDashboard() {
+        NSApplication.shared.setActivationPolicy(.regular)
+        let isNewWindow = dashboard == nil
+        if dashboard == nil {
+            let controller = MainWindowController(model: model)
+            controller.window?.delegate = self
+            mainController = controller
+            dashboard = controller.window
+        }
+        model.refreshDefaultStatus()
+        model.loadBrowserProfiles()
+        NSApplication.shared.setActivationPolicy(.regular)
+        dashboard?.makeKeyAndOrderFront(nil)
+        // Don't start with the sidebar search focused.
+        if isNewWindow { dashboard?.makeFirstResponder(nil) }
+        NSApplication.shared.activate(ignoringOtherApps: true)
+    }
+    private func showPicker() {
+        if picker == nil {
+            let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 400, height: 480), styleMask: [.titled, .closable], backing: .buffered, defer: false)
+            window.title = "Open Link In"
+            window.contentView = NSHostingView(rootView: DestinationPickerView().environmentObject(model).environmentObject(model.router))
+            window.isReleasedWhenClosed = false
+            window.delegate = self
+            window.level = .floating
+            window.center()
+            picker = window
+        }
+        picker?.makeKeyAndOrderFront(nil)
+        NSApplication.shared.activate(ignoringOtherApps: true)
+    }
+    func windowWillClose(_ notification: Notification) {
+        guard let window = notification.object as? NSWindow, window === dashboard else { return }
+        NSApplication.shared.setActivationPolicy(.accessory)
+    }
+    func windowShouldClose(_ sender: NSWindow) -> Bool {
+        if sender === picker {
+            guard !model.router.isDelivering else { return false }
+            model.router.cancel()
+            return model.router.current == nil
+        }
+        return true
+    }
+}

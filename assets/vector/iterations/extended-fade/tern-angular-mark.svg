@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" role="img" aria-labelledby="title">
+  <title id="title">Tern — angular, extended inner fade</title>
+  <defs>
+    <path id="integrated-route" d="M512.000 512.000L558.000 538.558L558.000 334.000L740.000 439.507" clip-path="url(#inner-tip-cut)" />
+    <clipPath id="inner-tip-cut" clipPathUnits="userSpaceOnUse">
+      <rect x="0" y="0" width="716" height="1024" />
+    </clipPath>
+  </defs>
+  <g id="connected-fold" fill="none" stroke-width="24" stroke-linejoin="miter" stroke-linecap="butt" stroke-miterlimit="3">
+    <path id="shared-perimeter" d="M512.000 254.000L742.000 387.000L742.000 497.000L604.000 417.000L604.000 565.116L735.435 641.000L505.253 773.686L409.990 718.686L548.272 639.174L420.000 565.116L288.565 641.000L288.747 375.314L384.010 320.314L383.728 479.826L512.000 405.768Z" stroke="currentColor" />
+    <g id="shared-inner-path" stroke="currentColor">
+      <use href="#integrated-route" />
+      <use href="#integrated-route" transform="rotate(120 512 512)" />
+      <use href="#integrated-route" transform="rotate(240 512 512)" />
+    </g>
+  </g>
+</svg>

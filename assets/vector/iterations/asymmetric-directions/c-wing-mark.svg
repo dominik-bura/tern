@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" role="img" aria-labelledby="title">
+  <title id="title">Tern — Wing</title>
+  <g id="brand-mark" fill="none" stroke-width="25" stroke-linejoin="round" stroke-linecap="butt" transform="translate(512 512) scale(1.083032491) translate(-528.0000 -518.0000)">
+    <path id="silhouette" d="M264 724L452 300H792L552 540L460 736L400 584Z" stroke="currentColor" />
+    <path id="inner-0" d="M310 660L480 350H676L504 522L456 620" stroke="currentColor" />
+    <path id="inner-1" d="M480 350L400 532" stroke="currentColor" />
+  </g>
+</svg>

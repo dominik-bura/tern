@@ -1,0 +1,16 @@
+Use case: logo-brand.
+Input image role: reference for an approved concept. Use ONLY concept A, the TOP LEFT logo in the reference image. Ignore concepts B, C and D completely.
+
+Create one polished 2×2 refinement sheet for Tern, the native macOS link-routing app. Keep the identity of A: TWO offset interlocking folded planes, slanted upper and lower edges, a very clear central negative-space passage, asymmetric vertical composition, white and silver on dark graphite. This is a close iteration of that specific mark, not four new directions. It must remain recognizable as A.
+
+Four restrained refinements, labeled only 1, 2, 3, 4:
+1. Faithful refinement: preserve A's silhouette and proportions, improve alignment, optical spacing, and the joins where the planes turn behind each other.
+2. Slightly taller and narrower: a slightly more open passage between the two front planes, carefully balanced, same two-fold construction.
+3. More geometric: slightly crisper slanted corners and cleaner flatter faces, with only a small corner radius and very restrained folded depth. The clearest vector-friendly interpretation of A, not an outline maze.
+4. More tightly integrated: subtly compact the two planes so they read as a single connected folded ribbon, preserving the negative-space passage and A's asymmetry. Keep the connection understandable, without an impossible interlock.
+
+Composition: professional identity-design contact sheet, four equal dark graphite macOS rounded-square tiles in a roomy 2×2 grid on neutral charcoal. Equal optical scale and margins. Each tile has one large white mark, with a much smaller FLAT single-color white silhouette beside it to judge legibility. Numbers 1–4 in small clean sans-serif, no other text. The little silhouettes must match the corresponding large mark exactly and work at 24px.
+
+Rendering: exceptionally clean precise geometry, elegant negative space, strong silhouettes, restrained silver shading ONLY on the rear folds. Front faces nearly flat white. Soft matte graphite tiles with a delicate edge highlight and subtle grain, keeping the background close to the reference. No glossy bevel, no thick extrusion, no strong shadows on the mark, no 3D-clay look. Ensure clean distinct edges between front and back planes and no crowded tiny gaps.
+
+Constraints: exactly two folds, no third arm, no radial symmetry, no pinwheel or hooked cross, no swastika-like arrangement, no X, no arrows, no literal browser icons, no bird, no forced letter or wordmark. Do not drift into concept B's horizontal S ribbon or D's arch. Do not reproduce an existing brand mark. Keep the refined identity of concept A.
