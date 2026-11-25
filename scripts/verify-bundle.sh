@@ -17,8 +17,8 @@ fi
 for binary in "$app/Contents/MacOS/Tern" "$app/Contents/Helpers/TernUpdater"; do
     [[ -x "$binary" ]]
     if [[ "${2:-}" == universal ]]; then
-        /usr/bin/lipo -verify_arch arm64 "$binary"
-        /usr/bin/lipo -verify_arch x86_64 "$binary"
+        /usr/bin/lipo "$binary" -verify_arch arm64
+        /usr/bin/lipo "$binary" -verify_arch x86_64
     fi
 done
 codesign --verify --deep --strict --all-architectures "$app"
