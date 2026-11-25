@@ -4,6 +4,8 @@ import Combine
 @MainActor final class RoutingCoordinator: ObservableObject {
     struct Pending: Identifiable {
         let request: IncomingURLRequest
+        /// The link rules were matched against: the destination inside a security scanner's wrapper.
+        var match: URL
         var decision: RoutingDecision
         var error: String?
         var id: UUID { request.id }
@@ -20,9 +22,15 @@ import Combine
     init(opener: DestinationOpening) { self.opener = opener }
 
     func enqueue(_ urls: [URL], sourceApp: String? = nil, configuration: RoutingConfiguration) {
-        for url in urls {
-            guard IncomingURLRequest.isSupported(url) else { lastResult = "Only HTTP and HTTPS links are supported"; continue }
-            queue.append(Pending(request: IncomingURLRequest(url: url), decision: RuleEngine.decide(url, sourceApp: sourceApp, configuration: configuration)))
+        enqueue(urls.map { LinkCleaner.Result(match: $0, open: $0) }, sourceApp: sourceApp, configuration: configuration)
+    }
+    /// Decides by each link's `match` URL and opens its `open` URL.
+    func enqueue(_ links: [LinkCleaner.Result], sourceApp: String? = nil, configuration: RoutingConfiguration) {
+        for link in links {
+            guard IncomingURLRequest.isSupported(link.match), IncomingURLRequest.isSupported(link.open) else {
+                lastResult = "Only HTTP and HTTPS links are supported"; continue
+            }
+            queue.append(Pending(request: IncomingURLRequest(url: link.open), match: link.match, decision: RuleEngine.decide(link.match, sourceApp: sourceApp, configuration: configuration)))
         }
         advance()
     }
@@ -31,7 +39,7 @@ import Combine
         if pending.error != nil, pending.decision.destination != destination {
             // An explicit redirect is a new delivery. A retry keeps the old ID
             // so a partially created Dia tab can be recovered in place.
-            pending = Pending(request: IncomingURLRequest(url: pending.request.url), decision: RoutingDecision(destination: destination, ruleName: nil))
+            pending = Pending(request: IncomingURLRequest(url: pending.request.url), match: pending.match, decision: RoutingDecision(destination: destination, ruleName: nil))
         }
         pending.decision = RoutingDecision(destination: destination, ruleName: pending.decision.ruleName, ruleID: pending.decision.ruleID)
         pending.error = nil

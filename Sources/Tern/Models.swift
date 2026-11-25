@@ -198,14 +198,16 @@ struct RoutingConfiguration: Codable, Equatable, Sendable {
     var schemaVersion = 1
     var rules: [RoutingRule] = []
     var fallback: BrowserDestination = .ask
-    /// Follow redirect wrappers (Safe Links, Google, Slack) and short links before matching.
+    /// Match the link inside redirect wrappers (Safe Links, Google, Slack). Done locally.
     var unwrapLinks = true
+    /// Ask short-link services (t.co, bit.ly) where a link points. The only routing step that uses the network.
+    var resolveShortLinks = false
     /// Remove tracking parameters such as utm_source and fbclid.
     var removeTracking = true
 
-    init(schemaVersion: Int = 1, rules: [RoutingRule] = [], fallback: BrowserDestination = .ask, unwrapLinks: Bool = true, removeTracking: Bool = true) {
+    init(schemaVersion: Int = 1, rules: [RoutingRule] = [], fallback: BrowserDestination = .ask, unwrapLinks: Bool = true, resolveShortLinks: Bool = false, removeTracking: Bool = true) {
         self.schemaVersion = schemaVersion; self.rules = rules; self.fallback = fallback
-        self.unwrapLinks = unwrapLinks; self.removeTracking = removeTracking
+        self.unwrapLinks = unwrapLinks; self.resolveShortLinks = resolveShortLinks; self.removeTracking = removeTracking
     }
 
     init(from decoder: Decoder) throws {
@@ -214,6 +216,7 @@ struct RoutingConfiguration: Codable, Equatable, Sendable {
         rules = try c.decodeIfPresent([RoutingRule].self, forKey: .rules) ?? []
         fallback = try c.decodeIfPresent(BrowserDestination.self, forKey: .fallback) ?? .ask
         unwrapLinks = try c.decodeIfPresent(Bool.self, forKey: .unwrapLinks) ?? true
+        resolveShortLinks = try c.decodeIfPresent(Bool.self, forKey: .resolveShortLinks) ?? false
         removeTracking = try c.decodeIfPresent(Bool.self, forKey: .removeTracking) ?? true
     }
 

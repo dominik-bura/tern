@@ -23,9 +23,13 @@ struct GeneralSettingsView: View {
                 .frame(minHeight: 66)
             }
 
-            SettingsSection("Links", footer: "Short links are checked with a single request to the shortener, without cookies.") {
-                SettingsRow("Unwrap Redirect Links", subtitle: "Match the real destination behind Outlook Safe Links, Google, Slack, and short links like t.co") {
+            SettingsSection("Links", footer: "Everything except Resolve Short Links happens on your Mac. Outlook Safe Links and Proofpoint links still open through your organization’s scanner.") {
+                SettingsRow("Unwrap Redirect Links", subtitle: "Match the real destination behind Outlook Safe Links, Google, Slack, and similar") {
                     switchToggle(Binding(get: { model.configuration.unwrapLinks }, set: { model.setUnwrapLinks($0) }))
+                }
+                RowSeparator()
+                SettingsRow("Resolve Short Links", subtitle: "Ask t.co, bit.ly, and similar where a link points: one request over HTTPS, without cookies") {
+                    switchToggle(Binding(get: { model.configuration.resolveShortLinks }, set: { model.setResolveShortLinks($0) }))
                 }
                 RowSeparator()
                 SettingsRow("Remove Tracking Parameters", subtitle: "Strip utm_source, fbclid, gclid, and similar before opening") {

@@ -101,6 +101,7 @@ final class MatcherKindTests: XCTestCase {
         XCTAssertNil(config.rules.first?.group)
         XCTAssertTrue(config.unwrapLinks)
         XCTAssertTrue(config.removeTracking)
+        XCTAssertFalse(config.resolveShortLinks)
     }
 
     func testGroupsStayTogetherInCheckOrder() {
@@ -117,7 +118,24 @@ final class MatcherKindTests: XCTestCase {
 
 final class LinkCleanerTests: XCTestCase {
     private func clean(_ s: String) -> String {
-        LinkCleaner.cleanLocally(URL(string: s)!, unwrap: true, removeTracking: true).absoluteString
+        LinkCleaner.cleanLocally(URL(string: s)!, unwrap: true, removeTracking: true).match.absoluteString
+    }
+
+    func testSecurityScannersStillOpenWrapped() {
+        let safe = URL(string: "https://eur01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com%2Fa&data=x")!
+        let result = LinkCleaner.cleanLocally(safe, unwrap: true, removeTracking: true)
+        XCTAssertEqual(result.match.absoluteString, "https://example.com/a")
+        XCTAssertEqual(result.open, safe)
+        let google = URL(string: "https://www.google.com/url?q=https://example.com/b&sa=D")!
+        let plain = LinkCleaner.cleanLocally(google, unwrap: true, removeTracking: true)
+        XCTAssertEqual(plain.open, plain.match)
+    }
+
+    func testShortLinksStayLocalByDefault() async {
+        XCTAssertFalse(RoutingConfiguration().resolveShortLinks)
+        let short = URL(string: "https://t.co/abc")!
+        let result = await LinkCleaner.clean(short, unwrap: true, resolveShortLinks: false, removeTracking: true)
+        XCTAssertEqual(result.open, short)
     }
 
     func testUnwrapsKnownRedirects() {

@@ -40,13 +40,13 @@ struct DestinationPickerView: View {
     private func header(_ pending: RoutingCoordinator.Pending) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .firstTextBaseline) {
-                Text(pending.request.url.host ?? "Link").font(.headline)
+                Text(pending.match.host ?? "Link").font(.headline)
                 Spacer()
                 if router.isDelivering { ProgressView().controlSize(.small) }
-                Button { copy(pending.request.url) } label: { Image(systemName: "doc.on.doc") }
+                Button { copy(pending.match) } label: { Image(systemName: "doc.on.doc") }
                     .buttonStyle(.borderless).help("Copy Link").accessibilityLabel("Copy Link")
             }
-            Text(pending.request.url.absoluteString)
+            Text(pending.match.absoluteString)
                 .font(.callout).foregroundStyle(.secondary)
                 .lineLimit(2).truncationMode(.middle).textSelection(.enabled)
             if let error = pending.error {
@@ -71,7 +71,7 @@ struct DestinationPickerView: View {
 
     private func footer(_ pending: RoutingCoordinator.Pending) -> some View {
         HStack(spacing: 8) {
-            Toggle("Always open \(pending.request.url.host ?? "this site") here", isOn: $remember)
+            Toggle("Always open \(pending.match.host ?? "this site") here", isOn: $remember)
                 .toggleStyle(.checkbox).lineLimit(1).truncationMode(.middle)
             Spacer(minLength: 8)
             if router.queuedCount > 0 {
@@ -90,7 +90,7 @@ struct DestinationPickerView: View {
     }
 
     private func open(_ destination: BrowserDestination) {
-        if remember, let host = router.current?.request.url.host {
+        if remember, let host = router.current?.match.host {
             model.remember(host: host, destination: destination)
         }
         router.choose(destination)

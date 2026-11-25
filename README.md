@@ -23,11 +23,11 @@ Tern is a small macOS menu-bar app that becomes your default browser and sends e
 
 - **Rules for any browser and profile.** Chrome, Edge, Brave, Vivaldi, Opera, Arc, Dia, Firefox, Zen, Safari, and more. Open a link in a specific profile wherever the browser supports it.
 - **Flexible matching.** By domain and path, wildcard (`*.atlassian.net`), or regular expression. Optionally only for links clicked in certain apps, such as Slack, Teams, or Mail.
-- **Cleaner links.** Unwraps Outlook Safe Links, Google, Slack, Facebook, LinkedIn, and Proofpoint redirects, resolves short links like t.co and bit.ly, and removes tracking parameters before matching.
+- **Cleaner links.** Matches the real destination behind Outlook Safe Links, Google, Slack, Facebook, LinkedIn, and Proofpoint redirects, and removes tracking parameters. Resolving short links like t.co and bit.ly is available as an opt-in.
 - **Organized rules.** Groups, drag to reorder, enable or disable a whole group, and per-rule usage counts.
 - **A link tester** that shows where a link would open, without opening it.
 - **Your usual browser stays the fallback.** Links no rule matches open where they did before Tern, or ask you every time.
-- **Private by design.** No accounts, no telemetry, no browsing history. Profile names are read from the browsers' own files. Tern never asks for Full Disk Access.
+- **Local and private.** Routing happens entirely on your Mac. No accounts, no telemetry, no browsing history, and no Full Disk Access.
 
 ## Install
 
@@ -73,7 +73,7 @@ Rules are checked from top to bottom (ungrouped rules first, then each group), a
 - **Regex:** tested against the whole link, ignoring case.
 - **Clicked In:** limits a rule to links from certain apps. Tern reads the app that sent the link, falling back to the frontmost app. Leave the domain empty to match every link from those apps.
 
-With **Unwrap Redirect Links** on, wrapped links are unwrapped locally before matching. Short-link hosts are resolved with one cookieless `HEAD` request that doesn't follow the redirect. **Remove Tracking Parameters** strips `utm_*`, `fbclid`, `gclid`, and similar. Use punycode for international hostnames.
+With **Unwrap Redirect Links** on, rules match the destination inside a redirect wrapper. This is done locally. Outlook Safe Links and Proofpoint links are matched by their destination but still opened through the wrapper, so your organization's click-time scan keeps working. **Remove Tracking Parameters** strips `utm_*`, `fbclid`, `gclid`, and similar. **Resolve Short Links** is off by default: when on, Tern asks the shortener (t.co, bit.ly, …) where a link points with one cookieless HTTPS `HEAD` request that doesn't follow the redirect. Use punycode for international hostnames.
 
 Rules start empty: Tern never guesses which account a shared service like GitHub belongs to.
 
@@ -85,7 +85,14 @@ Dia: profile names are matched exactly in the frontmost Dia window at delivery t
 
 ## Privacy
 
-No accounts, telemetry, URL logging, or persistent browsing history. Tern keeps only a count and last-used time per rule. Rules stay in the current app identity's Application Support directory. Pending URLs exist in memory and the deliberate picker UI. Clipboard access happens only when requested. Production update checks contact GitHub on launch, every six hours, and on demand. Development builds do not check for updates.
+Routing is local. Tern has no accounts, telemetry, URL logging, or browsing history, and never sends a link anywhere except to the browser you chose. It keeps only a count and last-used time per rule. Rules stay in Tern's Application Support folder. Pending links exist only in memory. The clipboard is read only when you choose Open Link from Clipboard.
+
+Tern makes exactly two kinds of network requests:
+
+- **Update checks** (release builds only): GitHub's release API on launch, every six hours, and on demand. No link or rule data is sent.
+- **Short-link resolution**, only if you turn on Resolve Short Links: one `HEAD` request to the shortener of the link you clicked.
+
+Profile names are read from browsers' own files, never by launching them. Tern never asks for Full Disk Access; for browsers that keep their files private, you pick the one file Tern may read. Browsers are opened with fixed, validated arguments, and Dia is controlled through a fixed script that receives links and profile names only as data.
 
 ## Updates
 

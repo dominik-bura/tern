@@ -176,6 +176,7 @@ import SwiftUI
     }
     func setFallback(_ value: BrowserDestination) { var next = configuration; next.fallback = value; commit(next) }
     func setUnwrapLinks(_ value: Bool) { var next = configuration; next.unwrapLinks = value; commit(next) }
+    func setResolveShortLinks(_ value: Bool) { var next = configuration; next.resolveShortLinks = value; commit(next) }
     func setRemoveTracking(_ value: Bool) { var next = configuration; next.removeTracking = value; commit(next) }
 
     private var intake: Task<Void, Never>?
@@ -186,9 +187,10 @@ import SwiftUI
             await previous?.value
             guard let self else { return }
             let options = self.configuration
-            var cleaned: [URL] = []
+            var cleaned: [LinkCleaner.Result] = []
             for url in urls {
-                cleaned.append(await LinkCleaner.clean(url, unwrap: options.unwrapLinks, removeTracking: options.removeTracking))
+                cleaned.append(await LinkCleaner.clean(url, unwrap: options.unwrapLinks, resolveShortLinks: options.resolveShortLinks,
+                                                       removeTracking: options.removeTracking))
             }
             self.router.enqueue(cleaned, sourceApp: sourceApp, configuration: self.configuration)
         }

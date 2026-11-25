@@ -15,24 +15,53 @@ enum LinkCleaner {
         "shorturl.at", "dlvr.it", "trib.al", "bitly.com", "cutt.ly", "rb.gy", "t.ly", "s.id",
     ]
 
-    /// Runs the enabled steps. Short links are resolved over the network; everything else is local.
-    static func clean(_ url: URL, unwrap: Bool, removeTracking: Bool) async -> URL {
+    /// The link rules are matched against, and the link that is actually opened.
+    struct Result: Equatable, Sendable {
+        var match: URL
+        var open: URL
+    }
+
+    /// Runs the enabled steps. Only short-link resolution uses the network, and only when enabled.
+    ///
+    /// Security scanners (Outlook Safe Links, Proofpoint) check a link when it is clicked. Their links are
+    /// matched by the destination inside but opened as they arrived, so that check still happens.
+    static func clean(_ url: URL, unwrap: Bool, resolveShortLinks: Bool, removeTracking: Bool) async -> Result {
         var current = url
-        if unwrap {
+        var scanner: URL?
+        if unwrap || resolveShortLinks {
             for _ in 0..<5 {
-                if let inner = unwrapped(current) { current = inner; continue }
-                if isShortLink(current), let resolved = await resolveShortLink(current) { current = resolved; continue }
+                if unwrap, let inner = unwrapped(current) {
+                    if isSecurityScanner(current) { scanner = current }
+                    current = inner; continue
+                }
+                if resolveShortLinks, isShortLink(current), let resolved = await resolveShortLink(current) { current = resolved; continue }
                 break
             }
         }
-        return removeTracking ? stripTracking(current) : current
+        let match = removeTracking ? stripTracking(current) : current
+        return Result(match: match, open: scanner ?? match)
     }
 
     /// The same steps without the network, for previews.
-    static func cleanLocally(_ url: URL, unwrap: Bool, removeTracking: Bool) -> URL {
+    static func cleanLocally(_ url: URL, unwrap: Bool, removeTracking: Bool) -> Result {
         var current = url
-        if unwrap { for _ in 0..<5 { guard let inner = unwrapped(current) else { break }; current = inner } }
-        return removeTracking ? stripTracking(current) : current
+        var scanner: URL?
+        if unwrap {
+            for _ in 0..<5 {
+                guard let inner = unwrapped(current) else { break }
+                if isSecurityScanner(current) { scanner = current }
+                current = inner
+            }
+        }
+        let match = removeTracking ? stripTracking(current) : current
+        return Result(match: match, open: scanner ?? match)
+    }
+
+    /// Wrappers added by an organization's mail security, which scan the destination at click time.
+    static func isSecurityScanner(_ url: URL) -> Bool {
+        guard let host = url.host?.lowercased() else { return false }
+        return host.hasSuffix(".safelinks.protection.outlook.com") || host.hasSuffix(".safelinks.protection.office365.us")
+            || host == "urldefense.proofpoint.com"
     }
 
     /// The link wrapped inside a known redirect service, or nil.
@@ -99,7 +128,12 @@ enum LinkCleaner {
 
     /// Asks the shortener where it points without following the redirect. Gives up after a few seconds.
     static func resolveShortLink(_ url: URL) async -> URL? {
-        var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 4)
+        // Always ask over HTTPS so nobody on the network can change the answer.
+        guard var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return nil }
+        components.scheme = "https"
+        components.port = nil
+        guard let secure = components.url else { return nil }
+        var request = URLRequest(url: secure, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 4)
         request.httpMethod = "HEAD"
         let configuration = URLSessionConfiguration.ephemeral
         configuration.httpCookieAcceptPolicy = .never
@@ -108,7 +142,7 @@ enum LinkCleaner {
         guard let (_, response) = try? await session.data(for: request),
               let http = response as? HTTPURLResponse, (300..<400).contains(http.statusCode),
               let location = http.value(forHTTPHeaderField: "Location"),
-              let target = URL(string: location, relativeTo: url)?.absoluteURL,
+              let target = URL(string: location, relativeTo: secure)?.absoluteURL,
               IncomingURLRequest.isSupported(target) else { return nil }
         return target
     }

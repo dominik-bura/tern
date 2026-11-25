@@ -115,9 +115,13 @@ struct RulesView: View {
         if let url = URL(string: testURL.trimmingCharacters(in: .whitespaces)), IncomingURLRequest.isSupported(url) {
             let options = model.configuration
             let cleaned = LinkCleaner.cleanLocally(url, unwrap: options.unwrapLinks, removeTracking: options.removeTracking)
-            let decision = RuleEngine.decide(cleaned, sourceApp: testSource, configuration: options)
-            if cleaned != url {
-                SettingsRow("Cleaned Link", subtitle: cleaned.absoluteString) { EmptyView() }
+            let decision = RuleEngine.decide(cleaned.match, sourceApp: testSource, configuration: options)
+            if cleaned.match != url {
+                SettingsRow("Matched As", subtitle: cleaned.match.absoluteString) { EmptyView() }
+                RowSeparator()
+            }
+            if cleaned.open != cleaned.match {
+                SettingsRow("Opens Through Scanner", subtitle: "Your organization’s link scanner still checks this link when it opens.") { EmptyView() }
                 RowSeparator()
             }
             SettingsRow("Opens In", subtitle: decision.ruleName.map { "Matched “\($0)”" } ?? "No rule matched") {

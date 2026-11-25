@@ -22,7 +22,8 @@ jobs:
       APPLE_ID: ${{ secrets.APPLE_ID }}
       APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
       APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-      HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+      # The tap token itself is only given to the step that pushes to the tap.
+      HAS_HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN != '' }}
       HOMEBREW_TAP_REPOSITORY: ${{ vars.HOMEBREW_TAP_REPOSITORY }}
     steps:
       - name: Check out source
@@ -169,9 +170,10 @@ jobs:
       - name: Update Homebrew tap
         # Needs the HOMEBREW_TAP_TOKEN secret (contents: write on the tap)
         # and the HOMEBREW_TAP_REPOSITORY variable, e.g. owner/homebrew-tern.
-        if: ${{ env.HOMEBREW_TAP_TOKEN != '' && env.HOMEBREW_TAP_REPOSITORY != '' }}
+        if: ${{ env.HAS_HOMEBREW_TAP_TOKEN == 'true' && env.HOMEBREW_TAP_REPOSITORY != '' }}
         env:
           VERSION: 0.1.${{ github.run_number }}
+          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
         run: |
           tap_dir="${RUNNER_TEMP}/tap"
           git clone --depth 1 "https://x-access-token:${HOMEBREW_TAP_TOKEN}@github.com/${HOMEBREW_TAP_REPOSITORY}.git" "${tap_dir}"
@@ -185,6 +187,8 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "tern ${VERSION}"
           git push
+          cd /
+          rm -rf "${tap_dir}"
 
       - name: Remove signing material
         if: ${{ always() && env.SIGNED_RELEASE == 'true' }}
