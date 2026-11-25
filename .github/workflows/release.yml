@@ -168,7 +168,7 @@ jobs:
 
       - name: Update Homebrew tap
         # Needs the HOMEBREW_TAP_TOKEN secret (contents: write on the tap)
-        # and the HOMEBREW_TAP_REPOSITORY variable, e.g. owner/homebrew-tap.
+        # and the HOMEBREW_TAP_REPOSITORY variable, e.g. owner/homebrew-tern.
         if: ${{ env.HOMEBREW_TAP_TOKEN != '' && env.HOMEBREW_TAP_REPOSITORY != '' }}
         env:
           VERSION: 0.1.${{ github.run_number }}

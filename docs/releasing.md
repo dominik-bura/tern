@@ -59,6 +59,6 @@ Before publishing, complete the live matrix, test a downloaded DMG installation,
 Every release generates a cask with `scripts/generate-cask.sh` (version, DMG SHA-256, repository, signing mode) and syntax-checks it. The release then updates a tap when both are configured:
 
 - secret `HOMEBREW_TAP_TOKEN`: a fine-grained token with contents write access to the tap repository only
-- variable `HOMEBREW_TAP_REPOSITORY`: for example `dominik-bura/homebrew-tap`
+- variable `HOMEBREW_TAP_REPOSITORY`: `dominik-bura/homebrew-tern`
 
-Users then install with `brew install --cask dominik-bura/tap/tern`. The cask sets `auto_updates true`, because Tern updates itself; Homebrew won't fight the in-app updater. For unsigned releases the cask prints a note after install explaining how to approve Tern on first launch; it never clears the quarantine flag itself. Users who install the DMG directly approve Tern once in System Settings → Privacy & Security.
+Users then install with `brew install --cask dominik-bura/tern/tern`. The cask sets `auto_updates true`, because Tern updates itself; Homebrew won't fight the in-app updater. For unsigned releases the cask prints a note after install explaining how to approve Tern on first launch; it never clears the quarantine flag itself. Users who install the DMG directly approve Tern once in System Settings → Privacy & Security.

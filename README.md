@@ -27,7 +27,13 @@ Dia destinations use the profile's exact name, resolved in the frontmost window 
 
 ## Install and first launch
 
-The app can currently be built and used locally. A GitHub release has not been published as part of this implementation.
+```sh
+brew install --cask dominik-bura/tern/tern
+```
+
+Or download the DMG from [Releases](https://github.com/dominik-bura/tern/releases). Tern isn't notarized, so approve it once in System Settings → Privacy & Security on first launch.
+
+To build from source instead:
 
 1. Build and open `build/Tern Dev.app` using the commands below.
 2. In **Browsers**, expand Dia and select **Refresh** with a Dia window open. Allow Tern to control Dia when macOS asks.
