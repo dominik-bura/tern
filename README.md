@@ -2,7 +2,7 @@
 <h1 align="center">Tern</h1>
 <p align="center"><strong>A home for every link.</strong></p>
 
-Tern is a native macOS URL router with a standard menu-bar menu and a full configuration window. Send external links to the right browser or Dia profile, and switch profiles in your current Dia window. Built with SwiftUI and AppKit, using [Sift](https://github.com/dominik-bura/sift) as the application and delivery template.
+Tern is a small macOS menu-bar app that becomes your default browser and sends every link to the right browser and profile. Clicked a GitHub link in Slack? It opens in your work profile. A YouTube link in Mail? Your personal browser. Everything else goes where it always went.
 
 <p align="center"><img src="docs/screenshots/rules.png" width="720" alt="Tern's Rules page with ungrouped, Work, and Clients rule groups, each routing to a browser or profile"></p>
 
@@ -21,26 +21,15 @@ Tern is a native macOS URL router with a standard menu-bar menu and a full confi
 
 ## Highlights
 
-- Ordered rules by domain and path, wildcard pattern, or regular expression, optionally limited to the app the link was clicked in (Slack, Mail, Teams, …), with a tester that never opens the link.
-- Rule groups, drag-to-reorder, and per-rule usage counts.
-- Redirect unwrapping (Outlook Safe Links, Google, Slack, Facebook, LinkedIn, Proofpoint, short links like t.co) and tracking-parameter removal before matching.
-- Dia profile destinations and switching in your existing window.
-- A destination picker for unmatched links and explicit browser destinations.
-- Local, versioned rules with JSON import/export and separate development preferences.
-- Clipboard opening on demand, default-browser setup and restoration, Open at Login, and a first-run welcome guide.
-- Sift-style ZIP/DMG packaging and SHA-256-checked updates for production builds.
+- **Rules for any browser and profile.** Chrome, Edge, Brave, Vivaldi, Opera, Arc, Dia, Firefox, Zen, Safari, and more. Open a link in a specific profile wherever the browser supports it.
+- **Flexible matching.** By domain and path, wildcard (`*.atlassian.net`), or regular expression. Optionally only for links clicked in certain apps, such as Slack, Teams, or Mail.
+- **Cleaner links.** Unwraps Outlook Safe Links, Google, Slack, Facebook, LinkedIn, and Proofpoint redirects, resolves short links like t.co and bit.ly, and removes tracking parameters before matching.
+- **Organized rules.** Groups, drag to reorder, enable or disable a whole group, and per-rule usage counts.
+- **A link tester** that shows where a link would open, without opening it.
+- **Your usual browser stays the fallback.** Links no rule matches open where they did before Tern, or ask you every time.
+- **Private by design.** No accounts, no telemetry, no browsing history. Profile names are read from the browsers' own files. Tern never asks for Full Disk Access.
 
-## Routing behavior
-
-The first enabled rule wins. Hostnames match exactly or include subdomains at a domain boundary: `example.com` never matches `badexample.com`. Paths ignore case and match whole encoded segments: `/team` matches `/Team/docs`, but not `/teammate` or `/team%2Fdocs`. Wildcard patterns use `*` and are checked against the host only when they contain no `/` (`*.notion.so`), otherwise against host, path, and query (`*.atlassian.net/wiki/*`). Regular expressions are tested against the whole link, ignoring case. A rule can also require the app the link came from, which Tern reads from the sender of the open-URL event (falling back to the frontmost app); leave the domain empty to match every link from that app.
-
-With **Unwrap Redirect Links** on (General), wrapped links are unwrapped locally before matching. Known short-link hosts are resolved with one cookieless `HEAD` request that doesn't follow the redirect. **Remove Tracking Parameters** strips `utm_*`, `fbclid`, `gclid`, and similar. Queries and fragments are forwarded unchanged. Use punycode for international hostnames.
-
-Rules start empty. Tern never guesses which company owns a shared service. Configure a path rule for a GitHub organization or similar shared domain yourself. Unmatched links default to the browser that handled links before Tern; choose Ask Every Time or another fixed fallback in Rules.
-
-Dia destinations use the profile's exact name, resolved in the frontmost window at delivery time. Missing or duplicate names fail visibly instead of opening in another account. Open Dia and refresh destinations after renaming profiles. A failed delivery stays in the queue until retried, redirected, or cancelled. A retry of an acknowledged tab creation focuses that tab instead of creating it again. If creation times out with an uncertain result, check Dia and cancel the request before trying the link again.
-
-## Install and first launch
+## Install
 
 ```sh
 brew tap dominik-bura/tern
@@ -50,32 +39,49 @@ brew install --cask dominik-bura/tern/tern
 
 Or download the DMG from [Releases](https://github.com/dominik-bura/tern/releases). Tern isn't notarized, so approve it once in System Settings → Privacy & Security on first launch.
 
-To build from source instead:
+On first launch a short welcome guide helps you make Tern your default browser, choose where unmatched links go, add a first rule, and turn on Open at Login. You can reopen it anytime from General.
 
-1. Build and open `build/Tern Dev.app` using the commands below.
-2. In **Browsers**, expand Dia and select **Refresh** with a Dia window open. Allow Tern to control Dia when macOS asks.
-3. Add a rule, select a discovered Dia profile or browser, and test a URL in Rules.
-4. Send a link directly to Tern, or deliberately choose **General → Make Default…** to route normal external links.
-
-Production DMGs use the usual drag-to-Applications layout. An ad-hoc build is not Apple-notarized; macOS may require approval in Privacy & Security. Development and production builds have different identities and Automation consent.
-
-## Requirements
-
-macOS 14 or later. Dia is required for profile routing; other installed browsers work as browser-level destinations. See [local verification](docs/local-verification.md) for the versions and flows actually tested. If Dia has no window, Tern asks you to open one and retry before delivering the link.
+Requires macOS 14 or later.
 
 ## Using Tern
 
-Open Tern's symbol in the menu bar for a standard macOS menu: **New Rule…**, **Open Link from Clipboard**, **Make Tern Default Browser…** (only while it isn't), and **Open Tern…**. A **Review Pending Link…** item appears when a delivery needs attention. **Open Tern…** brings up a resizable window with a native sidebar (Rules, Browsers, General), sidebar search, and back/forward navigation. Closing that window leaves Tern running in the menu bar. In **Rules**, add, edit, toggle, and reorder rules from each rule's ⋯ menu or context menu (double-click to edit), set where unmatched links open, and test a link. **Browsers** lists every installed browser. Browsers with profiles expand to show them, with the profile color or account picture, read from the browser's own files without launching it: Dia, Chromium browsers (Chrome, Edge, Brave, Vivaldi, Opera, Opera GX, Chromium, Thorium, Comet, Helium) via `Local State` and `--profile-directory`, and Firefox browsers (Firefox, Developer Edition, Nightly, Zen) via `profiles.ini` and `-P`. Chrome, Edge, and Firefox keep these files private on recent macOS; Tern then shows the detected profile folders and asks you to select the list file once (**Show Profile Names → Select File…**), which grants access to that one file, and remembers the names. Tern never asks for Full Disk Access. Safari, Arc, and Orion are browser-level only: they offer no way to open a link in a chosen profile. For Dia profiles you can also switch the frontmost window, or explicitly open its current page in another profile. Opening a page creates a new tab; it does not move the original.
+Tern lives in the menu bar: **New Rule…**, **Open Link from Clipboard**, **Make Tern Default Browser…** (only while it isn't), and **Open Tern…**. The window has three pages:
 
-The picker supports arrow-key selection, Return or double-click to open, Escape to cancel, Copy Link, Retry, and remembering an exact-host rule. Pending links are kept in arrival order. Closing the picker cancels the current link; any remaining link stays available.
+- **Rules** lists your rules in the order they're checked, in groups if you use them. Add, edit, toggle, and drag rules; use a rule's ⋯ menu or context menu for more. Below, choose where unmatched links open and test a link.
+- **Browsers** lists every installed browser. Browsers with profiles expand to show them, with the profile's color or account picture.
+- **General** makes Tern the default browser (and restores the previous one), controls link cleaning and Open at Login, and imports or exports your rules as JSON.
 
-General shows the actual HTTP/HTTPS handlers. **Make Default…** captures the prior handlers before requesting default-browser assignment; **Restore Previous…** restores them. Quitting does not change your default: macOS can relaunch Tern for the next link. Import replaces the rule configuration after validation; export writes it only to the location you choose. Corrupt or future-version files are preserved and block writes until repaired or moved aside.
+When a rule or the fallback is set to **Ask Every Time**, a picker appears: arrow keys and Return to choose, Escape to cancel, and an option to remember the choice as a rule.
 
-## Compatibility and limits
+## Browsers and profiles
 
-Default-browser routing applies to links delivered through macOS. Ordinary in-browser clicks remain there. Universal Links, authentication sessions, and apps choosing a browser explicitly may bypass Tern. Profile targeting is Dia-specific; other browsers receive links at browser level. No browser extension, URL rewriting, redirect expansion, sync, or tab movement is included.
+| Browsers | Profiles | How Tern opens a profile |
+| --- | --- | --- |
+| Chrome, Edge, Brave, Vivaldi, Opera, Opera GX, Chromium, Thorium, Comet, Helium (including Beta/Dev/Canary channels) | Yes | `--profile-directory` |
+| Firefox, Firefox Developer Edition, Nightly, Zen | Yes | `-P <profile>` |
+| Dia | Yes | Creates the tab in the profile; can also switch the current window's profile |
+| Safari, Arc, Orion, and any other browser | Browser only | These browsers offer no way to open a link in a chosen profile |
 
-Tern creates a Dia tab directly inside the selected profile, then focuses it. Dia's own incoming Link Rules are separate; their interaction, full-screen/Spaces behavior, and closed-browser startup need the additional manual coverage listed in the test plan. Tern never changes Dia's settings.
+Profile lists are read from each browser's own files without launching it. Chrome, Edge, and Firefox keep these files private on recent macOS. Tern then shows the profile folders it can detect and asks you to select the list file once (**Show Profile Names → Select File…**). That grants access to that one file, and Tern remembers the names.
+
+## How matching works
+
+Rules are checked from top to bottom (ungrouped rules first, then each group), and the first enabled match wins.
+
+- **Domain:** matches the host exactly or including subdomains, at a label boundary: `example.com` never matches `badexample.com`. An optional path matches whole segments and ignores case: `/team` matches `/Team/docs`, not `/teammate`.
+- **Wildcard:** `*` matches anything. Without a `/` the pattern is checked against the host (`*.notion.so`), otherwise against host, path, and query (`*.atlassian.net/wiki/*`).
+- **Regex:** tested against the whole link, ignoring case.
+- **Clicked In:** limits a rule to links from certain apps. Tern reads the app that sent the link, falling back to the frontmost app. Leave the domain empty to match every link from those apps.
+
+With **Unwrap Redirect Links** on, wrapped links are unwrapped locally before matching. Short-link hosts are resolved with one cookieless `HEAD` request that doesn't follow the redirect. **Remove Tracking Parameters** strips `utm_*`, `fbclid`, `gclid`, and similar. Use punycode for international hostnames.
+
+Rules start empty: Tern never guesses which account a shared service like GitHub belongs to.
+
+## Limits
+
+Tern only sees links that macOS hands to the default browser, such as links clicked in other apps. Links clicked inside a browser stay there. Universal Links, sign-in windows, and apps that pick a browser themselves may bypass Tern. Quitting Tern doesn't change your default browser; macOS relaunches Tern for the next link.
+
+Dia: profile names are matched exactly in the frontmost Dia window at delivery time; missing or duplicate names fail visibly instead of opening in the wrong account. If Dia has no window, Tern asks you to open one. A failed delivery stays queued until retried, redirected, or cancelled. Tern never changes Dia's settings.
 
 ## Privacy
 
@@ -107,4 +113,4 @@ Generate artwork from the editable SVG masters in `assets/vector/` with `swift s
 
 ## Contributing
 
-[Open an issue](https://github.com/dominik-bura/tern/issues) with the macOS/Dia versions, window state, and expected routing behavior. Avoid including private URLs or tokens. Run the deterministic tests and bundle verification before proposing changes. Live browser tests are opt-in and must use disposable tabs.
+[Open an issue](https://github.com/dominik-bura/tern/issues) with your macOS and browser versions and the expected routing behavior. Avoid including private URLs or tokens. Run the deterministic tests and bundle verification before proposing changes. Live browser tests are opt-in and must use disposable tabs.
