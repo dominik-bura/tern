@@ -28,6 +28,8 @@ Dia destinations use the profile's exact name, resolved in the frontmost window 
 ## Install and first launch
 
 ```sh
+brew tap dominik-bura/tern
+brew trust dominik-bura/tern   # Homebrew asks you to trust third-party taps once
 brew install --cask dominik-bura/tern/tern
 ```
 
