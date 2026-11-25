@@ -178,10 +178,12 @@ jobs:
           mkdir -p "${tap_dir}/Casks"
           cp "${RUNNER_TEMP}/tern.rb" "${tap_dir}/Casks/tern.rb"
           cd "${tap_dir}"
-          if git diff --quiet; then exit 0; fi
+          git add Casks/tern.rb
+          # --cached also sees the file when it is new.
+          if git diff --cached --quiet; then exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -am "tern ${VERSION}"
+          git commit -m "tern ${VERSION}"
           git push
 
       - name: Remove signing material
