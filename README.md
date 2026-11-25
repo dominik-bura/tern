@@ -4,6 +4,21 @@
 
 Tern is a native macOS URL router with a standard menu-bar menu and a full configuration window. Send external links to the right browser or Dia profile, and switch profiles in your current Dia window. Built with SwiftUI and AppKit, using [Sift](https://github.com/dominik-bura/sift) as the application and delivery template.
 
+<p align="center"><img src="docs/screenshots/rules.png" width="720" alt="Tern's Rules page with ungrouped, Work, and Clients rule groups, each routing to a browser or profile"></p>
+
+<table>
+  <tr>
+    <td width="33%"><img src="docs/screenshots/rule-editor.png" alt="Rule editor matching links clicked in Slack or Microsoft Teams"></td>
+    <td width="33%"><img src="docs/screenshots/browsers.png" alt="Browsers page listing Chrome and Dia profiles"></td>
+    <td width="33%"><img src="docs/screenshots/general.png" alt="General settings with link cleaning and Open at Login"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Match by domain, wildcard, regex, or source app</sub></td>
+    <td align="center"><sub>Profiles from Dia, Chromium, and Firefox browsers</sub></td>
+    <td align="center"><sub>Link cleaning, startup, and rules file</sub></td>
+  </tr>
+</table>
+
 ## Highlights
 
 - Ordered rules by domain and path, wildcard pattern, or regular expression, optionally limited to the app the link was clicked in (Slack, Mail, Teams, …), with a tester that never opens the link.
