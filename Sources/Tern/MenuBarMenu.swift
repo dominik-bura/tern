@@ -17,12 +17,12 @@ struct MenuBarMenu: View {
         }
         if !model.isDefaultBrowser {
             Divider()
-            Button("Make Tern Default Browser…") { run { await model.makeDefault() } }
+            Button("Make \(TernAssets.appName) Default Browser…") { run { await model.makeDefault() } }
         }
         Divider()
-        Button("Open Tern…") { model.showDashboard?() }.keyboardShortcut(",")
+        Button("Open \(TernAssets.appName)…") { model.showDashboard?() }.keyboardShortcut(",")
         Divider()
-        Button("Quit Tern") { NSApplication.shared.terminate(nil) }.keyboardShortcut("q")
+        Button("Quit \(TernAssets.appName)") { NSApplication.shared.terminate(nil) }.keyboardShortcut("q")
     }
 
     /// Runs a menu action and brings up the window only if it needs the user's attention.

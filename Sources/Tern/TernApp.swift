@@ -8,14 +8,14 @@ import SwiftUI
         MenuBarExtra {
             MenuBarMenu().environmentObject(model).environmentObject(model.router)
         } label: {
-            Image(nsImage: TernAssets.menuBarIcon).accessibilityLabel("Tern")
+            Image(nsImage: TernAssets.menuBarIcon).accessibilityLabel(TernAssets.appName)
         }
         .menuBarExtraStyle(.menu)
         .commands {
             CommandGroup(after: .newItem) {
                 Button("New Rule…") { model.startNewRule() }
                     .keyboardShortcut("n", modifiers: .command)
-                Button("Open Tern…") { model.showDashboard?() }
+                Button("Open \(TernAssets.appName)…") { model.showDashboard?() }
                     .keyboardShortcut("0", modifiers: .command)
                 Button("Close Window") { NSApplication.shared.keyWindow?.performClose(nil) }
                     .keyboardShortcut("w", modifiers: .command)
