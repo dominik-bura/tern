@@ -21,6 +21,10 @@ import SwiftUI
     /// The browser that currently receives external links when Tern is not the default.
     @Published private(set) var currentBrowserName = ""
     @Published private(set) var canRestoreBrowser = false
+    /// The browser links open in without Tern, if known.
+    var usualBrowserName: String? {
+        defaults.systemBrowserID.flatMap { id in browsers.first(where: { $0.id == id })?.name }
+    }
     @Published var updateState: UpdateState = .unavailable
     @Published var configurationSection: ConfigurationSection = .rules {
         didSet {
@@ -253,6 +257,8 @@ import SwiftUI
         canRestoreBrowser = defaults.canRestore
         let names = Set(["http", "https"].map { scheme -> String in
             let id = handlers[scheme] ?? ""
+            if id == "com.dominikbura.tern.dev" { return "Tern Dev" }
+            if id == "com.dominikbura.tern" { return "Tern" }
             return browsers.first(where: { $0.id == id })?.name ?? (id.isEmpty ? "No Browser" : id)
         })
         currentBrowserName = names.sorted().joined(separator: " / ")

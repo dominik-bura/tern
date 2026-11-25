@@ -40,6 +40,10 @@ struct OnboardingView: View {
         }
         .frame(width: 520, height: 440)
         .background(SettingsStyle.content)
+        // The window's own alert is hidden behind this sheet.
+        .alert("Tern needs your attention", isPresented: Binding(get: { model.error != nil }, set: { if !$0 { model.error = nil } })) {
+            Button("OK") { model.error = nil }
+        } message: { Text(model.error ?? "") }
     }
 
     private var primaryTitle: String {
@@ -88,7 +92,7 @@ struct OnboardingView: View {
     private var defaultBrowser: some View {
         VStack(alignment: .leading, spacing: 0) {
             header("globe", .blue, "Make Tern Your Default Browser",
-                   "Links you click in other apps then come to Tern first. Tern remembers \(model.currentBrowserName.isEmpty ? "your current browser" : model.currentBrowserName) so you can switch back anytime.")
+                   "Links you click in other apps then come to Tern first. Tern remembers \(model.usualBrowserName ?? "your current browser") so you can switch back anytime.")
             SettingsSection {
                 SettingsRow(model.isDefaultBrowser ? "Tern is your default browser" : "Not set up yet",
                             subtitle: model.isDefaultBrowser ? nil : "macOS asks you to confirm") {

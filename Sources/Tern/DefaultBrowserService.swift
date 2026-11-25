@@ -14,27 +14,46 @@ import AppKit
     static func isDefault(_ handlers: [String: String], identifier: String) -> Bool {
         !identifier.isEmpty && ["http", "https"].allSatisfy { handlers[$0] == identifier }
     }
-    /// The browser links would open in without Tern: the current default, or the one Tern replaced.
+    private static let previousKey = "previousBrowserHandlers"
+
+    /// Handlers the other Tern build (development or production) saved before it became the default.
+    /// Lets one build take over from the other without losing your usual browser.
+    private var siblingPrevious: [String: String]? {
+        for id in ["com.dominikbura.tern", "com.dominikbura.tern.dev"] where id != Bundle.main.bundleIdentifier {
+            if let saved = UserDefaults(suiteName: id)?.dictionary(forKey: Self.previousKey) as? [String: String],
+               Self.isComplete(saved) { return saved }
+        }
+        return nil
+    }
+
+    private static func isComplete(_ handlers: [String: String]) -> Bool {
+        handlers.count == 2 && handlers.values.allSatisfy { !BrowserRegistry.isTern($0) }
+    }
+
+    /// The browser links would open in without Tern: the current default, or the one a Tern build replaced.
     var systemBrowserID: String? {
         if let id = handlers["https"], !BrowserRegistry.isTern(id) { return id }
-        return (defaults.dictionary(forKey: "previousBrowserHandlers") as? [String: String])?["https"]
-            .flatMap { BrowserRegistry.isTern($0) ? nil : $0 }
+        if let saved = defaults.dictionary(forKey: Self.previousKey) as? [String: String], let id = saved["https"], !BrowserRegistry.isTern(id) { return id }
+        return siblingPrevious?["https"]
     }
-    var canRestore: Bool { defaults.dictionary(forKey: "previousBrowserHandlers") != nil }
+    var canRestore: Bool { defaults.dictionary(forKey: Self.previousKey) != nil }
     func makeDefault() async throws {
         let current = handlers
-        // Preserve the first pre-Tern handlers even if only one scheme was changed.
-        if defaults.dictionary(forKey: "previousBrowserHandlers") == nil {
-            guard current.count == 2, current.values.allSatisfy({ !BrowserRegistry.isTern($0) }) else {
-                throw TernError.message("Set another browser as your default first so Tern can save a complete restore destination.")
+        // Preserve the first pre-Tern handlers even if only one scheme was changed. When the other
+        // Tern build is the default, take over the browser it saved. Without either, Tern still
+        // becomes the default; only Restore Previous is unavailable.
+        if defaults.dictionary(forKey: Self.previousKey) == nil {
+            if Self.isComplete(current) {
+                defaults.set(current, forKey: Self.previousKey)
+            } else if let saved = siblingPrevious {
+                defaults.set(saved, forKey: Self.previousKey)
             }
-            defaults.set(current, forKey: "previousBrowserHandlers")
         }
         for scheme in ["http", "https"] { try await set(Bundle.main.bundleURL, scheme: scheme) }
         guard isDefault else { throw TernError.message("macOS did not assign both HTTP and HTTPS to Tern. Check Default Browser settings and retry.") }
     }
     func restore() async throws {
-        guard let previous = defaults.dictionary(forKey: "previousBrowserHandlers") as? [String: String] else { return }
+        guard let previous = defaults.dictionary(forKey: Self.previousKey) as? [String: String] else { return }
         for scheme in ["http", "https"] {
             guard let id = previous[scheme], !BrowserRegistry.isTern(id), let app = NSWorkspace.shared.urlForApplication(withBundleIdentifier: id) else {
                 throw TernError.message("Your previous browser is unavailable. Choose a default browser in System Settings.")
@@ -42,7 +61,7 @@ import AppKit
             try await set(app, scheme: scheme)
         }
         guard handlers == previous else { throw TernError.message("The previous defaults were not fully restored. Check macOS settings.") }
-        defaults.removeObject(forKey: "previousBrowserHandlers")
+        defaults.removeObject(forKey: Self.previousKey)
     }
     private func set(_ app: URL, scheme: String) async throws {
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
