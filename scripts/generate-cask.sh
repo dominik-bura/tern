@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Writes a Homebrew cask for a published release.
 # Usage: scripts/generate-cask.sh VERSION DMG_SHA256 OWNER/REPO [unsigned] > tern.rb
-# "unsigned" adds a postflight step that clears the quarantine flag, since Gatekeeper
-# blocks apps that aren't notarized.
+# "unsigned" adds a note telling users how to approve the app, since Gatekeeper
+# blocks apps that aren't notarized. The cask never bypasses Gatekeeper itself.
 set -euo pipefail
 
 version="${1:?version}"
@@ -38,10 +38,11 @@ CASK
 if [[ "${signing}" == "unsigned" ]]; then
 cat <<'CASK'
 
-  # Tern is not notarized. Clearing quarantine lets it open without a Gatekeeper prompt.
-  postflight do
-    system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{appdir}/Tern.app"]
-  end
+  caveats <<~EOS
+    Tern isn't notarized by Apple. On first launch, approve it in
+    System Settings → Privacy & Security, or run:
+      xattr -dr com.apple.quarantine #{appdir}/Tern.app
+  EOS
 CASK
 fi
 
