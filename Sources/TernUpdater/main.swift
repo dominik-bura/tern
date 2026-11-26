@@ -14,7 +14,8 @@ do {
         Thread.sleep(forTimeInterval: 0.1)
     }
     try UpdateInstallation.install(current: current, staged: staged, expectedVersion: args[4]) { url in
-        let process = Process(); process.executableURL = URL(fileURLWithPath: "/usr/bin/open"); process.arguments = [url.path]
+        let process = Process(); process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+        process.arguments = UpdateRelaunch.openArguments(for: url)
         try process.run(); process.waitUntilExit()
         guard process.terminationStatus == 0 else { throw InstallationError.invalidBundle }
     }

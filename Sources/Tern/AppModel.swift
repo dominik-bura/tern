@@ -1,6 +1,7 @@
 import AppKit
 import ServiceManagement
 import SwiftUI
+import Combine
 
 @MainActor final class AppModel: ObservableObject {
     static let shared = AppModel()
@@ -14,7 +15,7 @@ import SwiftUI
     /// How often each rule opened a link, and when it last did.
     @Published private(set) var ruleUsage: [UUID: RuleUsage] = [:]
     @Published private(set) var opensAtLogin = false
-    @Published var showsOnboarding = false
+    @Published var showsOnboarding = false { didSet { updater.activityDidChange() } }
     @Published var error: String?
     @Published var isRefreshing = false
     @Published private(set) var isDefaultBrowser = false
@@ -25,7 +26,6 @@ import SwiftUI
     var usualBrowserName: String? {
         defaults.systemBrowserID.flatMap { id in browsers.first(where: { $0.id == id })?.name }
     }
-    @Published var updateState: UpdateState = .unavailable
     @Published var configurationSection: ConfigurationSection = .rules {
         didSet {
             guard configurationSection != oldValue, !isNavigatingHistory else { return }
@@ -33,7 +33,10 @@ import SwiftUI
             forwardHistory.removeAll()
         }
     }
-    @Published var editingRule: RoutingRule?
+    @Published var editingRule: RoutingRule? { didSet { updater.activityDidChange() } }
+    @Published private(set) var pendingIncomingLinks = 0 { didSet { updater.activityDidChange() } }
+    @Published private(set) var pendingBrowserOperations = 0 { didSet { updater.activityDidChange() } }
+    @Published private(set) var isManagingRulesFile = false { didSet { updater.activityDidChange() } }
     private var backHistory: [ConfigurationSection] = []
     private var forwardHistory: [ConfigurationSection] = []
     private var isNavigatingHistory = false
@@ -58,13 +61,17 @@ import SwiftUI
     let router: RoutingCoordinator
     let defaults = DefaultBrowserService()
     let store: RuleStore
-    let updates = UpdateService()
+    let updates: UpdateService
+    let updater: UpdateController
     var showDashboard: (() -> Void)?
     private var storageHealthy = true
-    private var updateTask: Task<Void, Never>?
+    private var updateActivityObservations: Set<AnyCancellable> = []
 
     init(store: RuleStore = RuleStore()) {
         self.store = store
+        let service = UpdateService()
+        updates = service
+        updater = UpdateController(service: service)
         let dia = DiaService()
         self.dia = dia
         router = RoutingCoordinator(opener: BrowserOpener(dia: dia))
@@ -82,15 +89,10 @@ import SwiftUI
         ruleUsage = RuleUsage.load()
         opensAtLogin = SMAppService.mainApp.status == .enabled
         router.onOpened = { [weak self] decision in self?.recordUse(of: decision) }
-        if updates.repository != nil {
-            updateState = .idle
-            updateTask = Task { [weak self] in
-                while !Task.isCancelled {
-                    await self?.checkForUpdates()
-                    try? await Task.sleep(for: .seconds(6 * 60 * 60))
-                }
-            }
-        }
+        updater.activityProvider = { [weak self] in self?.updateActivity() ?? UpdateActivity(hasModalWindow: true) }
+        router.$current.sink { [weak updater] _ in updater?.activityDidChange() }.store(in: &updateActivityObservations)
+        router.$queuedCount.sink { [weak updater] _ in updater?.activityDidChange() }.store(in: &updateActivityObservations)
+        router.$isDelivering.sink { [weak updater] _ in updater?.activityDidChange() }.store(in: &updateActivityObservations)
     }
     func commit(_ next: RoutingConfiguration) {
         do {
@@ -182,10 +184,14 @@ import SwiftUI
     private var intake: Task<Void, Never>?
     /// Cleans links (unwrapping redirects may need the network), then routes them in arrival order.
     func receive(_ urls: [URL], sourceApp: String? = nil) {
+        guard !urls.isEmpty else { return }
+        // Count synchronously, before redirect resolution or a previous intake task can suspend.
+        pendingIncomingLinks += urls.count
         let previous = intake
         intake = Task { [weak self] in
             await previous?.value
             guard let self else { return }
+            defer { self.pendingIncomingLinks -= urls.count }
             let options = self.configuration
             var cleaned: [LinkCleaner.Result] = []
             for url in urls {
@@ -238,9 +244,13 @@ import SwiftUI
         catch { self.error = error.localizedDescription }
     }
     func switchProfile(_ profile: DiaProfileReference) async {
+        pendingBrowserOperations += 1
+        defer { pendingBrowserOperations -= 1 }
         do { try await dia.switchProfile(profile) } catch { self.error = error.localizedDescription }
     }
     func openCurrentPage(in profile: DiaProfileReference) async {
+        pendingBrowserOperations += 1
+        defer { pendingBrowserOperations -= 1 }
         do {
             let url = try await dia.currentURL()
             try await dia.open(IncomingURLRequest(url: url), profile: profile)
@@ -275,35 +285,38 @@ import SwiftUI
         refreshDefaultStatus()
     }
     func importRules() {
+        isManagingRulesFile = true
+        defer { isManagingRulesFile = false }
         let panel = NSOpenPanel(); panel.allowedContentTypes = [.json]; panel.allowsMultipleSelection = false
         guard panel.runModal() == .OK, let url = panel.url else { return }
         do { let next = try RuleStore.decode(Data(contentsOf: url)); commit(next) }
         catch { self.error = error.localizedDescription }
     }
     func exportRules() {
+        isManagingRulesFile = true
+        defer { isManagingRulesFile = false }
         let panel = NSSavePanel(); panel.allowedContentTypes = [.json]; panel.nameFieldStringValue = "Tern-rules.json"
         guard panel.runModal() == .OK, let url = panel.url else { return }
         do { try RuleStore.encode(configuration).write(to: url, options: .atomic) }
         catch { self.error = error.localizedDescription }
     }
-    func checkForUpdates() async {
-        guard updates.repository != nil else { return }
-        switch updateState { case .checking, .downloading: return; default: break }
-        updateState = .checking
-        do { if let release = try await updates.checkForUpdate() { updateState = .available(release) } else { updateState = .upToDate(Date()) } }
-        catch { updateState = .failed(error.localizedDescription) }
-    }
-    func installUpdate(_ release: UpdateRelease) async {
-        guard router.current == nil, !router.isDelivering, router.queuedCount == 0 else {
-            error = "Finish or cancel pending links before installing the update."; return
-        }
-        updateState = .downloading(release)
-        do {
-            let service = updates
-            let staged = try await Task.detached { try await service.downloadAndStage(release) }.value
-            guard router.current == nil else { updateState = .available(release); error = "A link arrived. Finish routing it before updating."; return }
-            try updates.launchInstaller(for: staged)
-        } catch { updateState = .failed(error.localizedDescription) }
+    var updatePickerIsVisible: () -> Bool = { false }
+    private func updateActivity() -> UpdateActivity {
+        let windows = NSApplication.shared.windows.filter { $0.isVisible && $0.level.rawValue <= NSWindow.Level.floating.rawValue }
+        return UpdateActivity(
+            incomingLinks: pendingIncomingLinks,
+            queuedLinks: router.queuedCount,
+            hasPendingLink: router.current != nil,
+            isDelivering: router.isDelivering || pendingBrowserOperations > 0,
+            isPickerOpen: updatePickerIsVisible(),
+            isEditingRules: editingRule != nil,
+            isManagingRulesFile: isManagingRulesFile,
+            isOnboarding: showsOnboarding,
+            hasModalWindow: NSApplication.shared.modalWindow != nil || windows.contains { $0.attachedSheet != nil },
+            hasVisibleWindows: !windows.isEmpty,
+            isAppActive: NSApplication.shared.isActive,
+            isInteracting: NSApplication.shared.isActive && windows.contains { $0.isKeyWindow }
+        )
     }
     /// Reads profile lists from disk. This never launches or scripts a browser.
     func loadBrowserProfiles() {

@@ -22,6 +22,8 @@ struct MenuBarMenu: View {
         Divider()
         Button("Open \(TernAssets.appName)…") { model.showDashboard?() }.keyboardShortcut(",")
         Divider()
+        UpdateMenuItems(updater: model.updater)
+        Divider()
         Button("Quit \(TernAssets.appName)") { NSApplication.shared.terminate(nil) }.keyboardShortcut("q")
     }
 

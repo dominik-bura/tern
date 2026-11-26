@@ -49,7 +49,7 @@ Tern lives in the menu bar: **New Rule…**, **Open Link from Clipboard**, **Mak
 
 - **Rules** lists your rules in the order they're checked, in groups if you use them. Add, edit, toggle, and drag rules; use a rule's ⋯ menu or context menu for more. Below, choose where unmatched links open and test a link.
 - **Browsers** lists every installed browser. Browsers with profiles expand to show them, with the profile's color or account picture.
-- **General** makes Tern the default browser (and restores the previous one), controls link cleaning and Open at Login, and imports or exports your rules as JSON.
+- **General** makes Tern the default browser (and restores the previous one), controls link cleaning and Open at Login, imports or exports your rules as JSON, and controls software updates.
 
 When a rule or the fallback is set to **Ask Every Time**, a picker appears: arrow keys and Return to choose, Escape to cancel, and an option to remember the choice as a rule.
 
@@ -96,7 +96,11 @@ Profile names are read from browsers' own files, never by launching them. Tern n
 
 ## Updates
 
-Production builds check GitHub for newer versions and require an explicit installation action. Downloads require SHA-256 verification, a production bundle identity, a newer expected version, matching repository, a valid code signature, and a matching signing team when the installed app has one. The helper revalidates before replacing the bundle and restores the previous app if relaunch fails. Ad-hoc releases have weaker publisher identity than Developer ID builds. Updates wait until pending links are finished or cancelled.
+Production builds check GitHub on launch, every six hours, and on demand. The menu shows **Update Available…** or **Update Ready…**; General also shows update status. A native prompt offers **Update & Relaunch**, **Remind Tomorrow**, and **Skip Version**. Reminders and skipped versions survive restarts, and you can review an update explicitly from the menu at any time when Tern isn't handling links or an open dialog.
+
+**Automatically Install Updates** is optional and off by default. When enabled, Tern downloads and verifies updates in the background, then waits for a continuous idle minute with no open Tern windows or menu interaction before restarting. Both manual and automatic installation wait for incoming-link resolution, queued links, browser delivery, the browser picker, rule editing, and open dialogs to finish. If work begins during a manual download, the update stays ready for another explicit approval. Turning automatic updates off keeps a prepared update available for manual installation. An update relaunch stays in the menu bar without reopening the configuration window or taking focus.
+
+Downloads require SHA-256 verification, a production bundle identity, the exact expected newer version, matching repository, a valid code signature, and a matching signing team when the installed app has one. The helper revalidates before replacing the bundle and restores the previous app if relaunch fails. Ad-hoc releases have weaker publisher identity than Developer ID builds. Development builds cannot self-update.
 
 ## Build from source
 

@@ -62,11 +62,7 @@ struct GeneralSettingsView: View {
             }
 
             SettingsSection("Updates") {
-                SettingsRow("Version") {
-                    Text("\(model.updates.currentVersion) (\(model.updates.buildNumber))").foregroundStyle(.secondary)
-                }
-                RowSeparator()
-                updateRow
+                UpdateSettingsRows(updater: model.updater)
             }
         }
     }
@@ -75,27 +71,4 @@ struct GeneralSettingsView: View {
         Toggle("", isOn: isOn).labelsHidden().toggleStyle(.switch).controlSize(.small)
     }
 
-    @ViewBuilder private var updateRow: some View {
-        switch model.updateState {
-        case .unavailable:
-            SettingsRow("Software Update") { Text("Unavailable in development builds").foregroundStyle(.secondary) }
-        case .checking:
-            SettingsRow("Software Update") { ProgressView().controlSize(.small) }
-        case .downloading(let release):
-            SettingsRow("Downloading \(release.version)…") { ProgressView().controlSize(.small) }
-        case .available(let release):
-            SettingsRow("Tern \(release.version) is available") {
-                Link("Release Notes", destination: release.releasePageURL)
-                Button("Install") { Task { await model.installUpdate(release) } }.nativeProminentButtonStyle()
-            }
-        case .failed(let message):
-            SettingsRow("Update check failed", subtitle: message) {
-                Button("Check Again") { Task { await model.checkForUpdates() } }
-            }
-        case .upToDate, .idle:
-            SettingsRow("Software Update", subtitle: model.updateState == .idle ? nil : "Tern is up to date") {
-                Button("Check Now") { Task { await model.checkForUpdates() } }
-            }
-        }
-    }
 }

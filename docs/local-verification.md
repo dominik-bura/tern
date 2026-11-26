@@ -58,3 +58,25 @@ The canonical app-icon master is `assets/vector/tern-switch-icon.svg`; the histo
 The generator renders the master with librsvg to preserve the SVG texture and masks, then produces all ten app-icon sizes and `.icns`, app SVG/PNG, standalone shaded and monochrome SVGs, and 1×/2×/3× native menu-bar templates. `TernAssets` assembles the PNG menu representations into one native template image because CoreSVG does not preserve luminance-mask cutouts. The build script bundles all generated assets, and the development app refreshes its application icon on launch.
 
 Development and universal production bundles, helper signatures, native icon dimensions, texture/selected-master parity, unchanged monochrome menu assets, and local ZIP/DMG checksums are verified after rebuilding. No routing behavior changes are part of the identity update.
+
+
+## Sift-style update experience — November 26
+
+Compared the current local Sift update implementation at `e7ab73c` (including its nonactivating prompt and opt-in idle installation) and ported the behavior into Tern's existing validated updater. Sift's source was not changed.
+
+The native menu now reports available, downloading, ready, and failed update states. General includes update status and an automatic-install switch, off by default. The separate native nonactivating update panel offers Update & Relaunch, Remind Tomorrow, Skip Version, release notes, and the same automatic-install preference. Reminder/skip choices persist per release; an explicit menu action can review a suppressed release. Background discovery waits for interaction with Tern before prompting; opting into automatic updates prepares the release silently.
+
+Downloads are separate from replacement. A verified release stays ready if automatic updates are turned off, approval is withdrawn, or new routing/editor work blocks a manual restart. Manual installation rechecks activity after the download and requires another click if work started. Automatic installation requires a continuous idle minute without visible Tern windows, an active app, menu tracking, or a prompt. Activity notifications reset the idle clock even when a complete link burst occurs between heartbeat ticks. Checks remain on launch and every six hours; prepared versions do not prevent discovering a newer release.
+
+All replacement paths check incoming links still being cleaned/resolved, the routing queue/current link, active browser/profile operations, picker visibility, rule editing, onboarding, and modal/file dialogs. The final activity check and helper launch have no suspension between them. The service passes the approved release's exact version to validation and the helper rather than deriving it from the candidate. Existing checksum, origin, archive, bundle identity, repository, signature/team, helper revalidation, and rollback checks remain in place.
+
+The helper relaunches with `open -g` and a dedicated background-update argument, including rollback relaunches. App startup recognizes that argument and skips the normal dashboard/welcome presentation. User-requested opens and incoming links retain their normal behavior.
+
+Verified locally:
+
+- Optimized development and universal production bundles build and pass `verify-bundle.sh`, including helper/code signatures and URL/Automation metadata. Development builds remain unable to self-update.
+- 62 automated tests passed, with no skips: 56 app tests and 6 update-core tests. This includes 17 update-coordinator tests, persisted reminder/skip policy, exact background relaunch arguments, real ZIP validation, and disposable replacement/rollback/tamper rehearsals using the newly built production bundle.
+- Update scheduling tests use controlled downloads and isolated preferences. They cover every restart blocker, activity arriving during downloads, withdrawn approval, opt-out/re-enable, prepared-version reminders/skips, new release discovery, duplicate download prevention, and failure/retry behavior. The installer receives the explicitly approved version.
+- Local production ZIP/DMG and SHA-256 sidecars were refreshed. These remain unpublished ad-hoc artifacts at version 0.1.1.
+
+The actual native prompt was compiled into an isolated preview host with fake downloads and no replacement capability, but desktop automation timed out opening it. Its visual layout and live focus behavior are therefore not claimed as verified. No real GitHub self-update, installed-app replacement, or live background restart was performed; the replacement tests operate only on disposable copies with an injected launcher. The development app's relaunch and UI inspection could not be completed through the timed-out desktop session.

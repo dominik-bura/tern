@@ -19,6 +19,8 @@ enum UpdateState: Equatable, Sendable {
     case upToDate(Date)
     case available(UpdateRelease)
     case downloading(UpdateRelease)
+    case ready(UpdateRelease)
+    case installing(UpdateRelease)
     case failed(String)
 }
 
@@ -115,7 +117,7 @@ struct UpdateService: Sendable {
     }
 
     @MainActor
-    func launchInstaller(for stagedApp: URL) throws {
+    func launchInstaller(for stagedApp: URL, expectedVersion: String) throws {
         let currentApp = bundle.bundleURL.standardizedFileURL
         guard currentApp.pathExtension == "app",
               Self.isSupportedCurrentApplicationName(currentApp.lastPathComponent) else {
@@ -131,7 +133,6 @@ struct UpdateService: Sendable {
         guard let helper else { throw UpdateError.missingInstaller }
         let process = Process()
         process.executableURL = helper
-        guard let candidate = Bundle(url: stagedApp), let expectedVersion = candidate.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String else { throw UpdateError.invalidApplication }
         try UpdateValidation.validateCandidate(stagedApp, current: currentApp, expectedVersion: expectedVersion)
         process.arguments = [currentApp.path, stagedApp.path, String(ProcessInfo.processInfo.processIdentifier), expectedVersion]
         try process.run()
